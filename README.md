@@ -5,6 +5,10 @@
   <!-- <img src="https://wr.do/_static/images/light-preview.png"/> -->
 </div>
 
+## New Features
+
+- 添加`RESEND_DOMAIN`变量,支持自定义Resend发件域名
+
 ## Features
 
 - 🔗 **URL Shortening:** Generate short links with visitor analytic and password(support api)
