@@ -50,7 +50,6 @@ export default {
       from: `"${siteConfig.name}" <support@${env.RESEND_DOMAIN}>`,
       async sendVerificationRequest({ identifier: email, url, provider }) {
         try {
-          console.log("sendVerificationRequest", email, url, provider);
           const { error } = await resend.emails.send({
             from: provider.from || `no-reply@${env.RESEND_DOMAIN}`,
             to: [email],
