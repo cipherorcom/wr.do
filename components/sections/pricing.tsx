@@ -44,6 +44,11 @@ const getBenefits = (plan) => [
     icon: <Icons.send className="size-4" />,
   },
   {
+    text: `${nFormatter(plan.RC_NewRecords)} DNS records`,
+    checked: plan.RC_NewRecords > 0,
+    icon: <Icons.globeLock className="size-4" />,
+  },
+  {
     text: `${plan.SL_Domains === 1 ? "One" : plan.SL_Domains} domain${plan.SL_Domains > 1 ? "s" : ""}`,
     checked: true,
     icon: <Icons.globe className="size-4" />,
