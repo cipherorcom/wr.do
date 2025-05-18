@@ -28,6 +28,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             src="https://umami.oiov.dev/script.js"
             data-website-id="56549e9d-61df-470d-a1b1-cbf12cfafe9d"
           ></script>
+          <link rel="manifest" href="/site.webmanifest" />
         </head>
         <body
           className={cn(

@@ -31,7 +31,7 @@ export function SiteFooter({ className }: React.HTMLAttributes<HTMLElement>) {
             <br />
             —all on one platform.
           </div>
-          <GitHubStarsWithSuspense className="mt-4" owner="oiov" repo="wr.do" />
+          <GitHubStarsWithSuspense className="mt-4" owner="cipherorcom" repo="wr.do" />
         </div>
         {footerLinks.map((section) => (
           <div key={section.title}>
@@ -68,12 +68,12 @@ export function SiteFooter({ className }: React.HTMLAttributes<HTMLElement>) {
             </Link>
             . <br className="block sm:hidden" /> Built with{" "}
             <Link
-              href="https://www.cloudflare.com?ref=wrdo"
+              href="https://vercel.com"
               target="_blank"
               rel="noreferrer"
               className="font-medium text-primary underline underline-offset-2"
             >
-              Cloudflare
+              vercel
             </Link>
             .
           </p>

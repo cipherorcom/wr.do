@@ -8,7 +8,7 @@ const email_domains = env.NEXT_PUBLIC_EMAIL_DOMAINS || "";
 const email_r2_domain = env.NEXT_PUBLIC_EMAIL_R2_DOMAIN || "";
 
 export const siteConfig: SiteConfig = {
-  name: "WR.DO",
+  name: "Domains",
   description:
     "Shorten links with analytics, manage emails and control subdomains—all on one platform.",
   url: site_url,
@@ -17,7 +17,7 @@ export const siteConfig: SiteConfig = {
     github: "https://github.com/cipherorcom/wr.do",
     telegram: "https://t.me/cipheror_com",
   },
-  mailSupport: "support@wr.do",
+  mailSupport: "support@cipheror.com",
   openSignup: open_signup === "1" ? true : false,
   shortDomains: short_domains.split(","),
   emailDomains: email_domains.split(","),
@@ -31,8 +31,7 @@ export const footerLinks: SidebarNavItem[] = [
       { title: "About", href: "/docs" },
       { title: "Terms", href: "/terms" },
       { title: "Privacy", href: "/privacy" },
-      { title: "Blog", href: "https://www.oiov.dev" },
-      { title: "Feedback", href: siteConfig.links.feedback },
+      { title: "Blog", href: "https://blog.cipheror.com" },
     ],
   },
   {
@@ -47,7 +46,7 @@ export const footerLinks: SidebarNavItem[] = [
       { title: "Introduction", href: "/docs" },
       { title: "Guide", href: "/docs/quick-start" },
       { title: "Developer", href: "/docs/developer" },
-      { title: "Contact", href: "mailto:support@wr.do" },
+      { title: "Contact", href: "mailto:support@cipheror.com" },
     ],
   },
 ];

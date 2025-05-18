@@ -43,10 +43,19 @@ const nextConfig = {
         source: "/logo.png",
         destination: "/_static/logo.png",
       },
+      {
+        source: "/manifest.json",
+        destination: "/manifest.json",
+      },
     ];
   },
   redirects() {
     return [
+      {
+        source: "/manifest.json",
+        destination: "/site.webmanifest",
+        permanent: true,
+      },
       {
         source: "/s",
         destination: "/",
@@ -104,6 +113,8 @@ const nextConfig = {
 const withPWA = require("next-pwa")({
   dest: "public",
   disable: false,
+  register: true,
+  skipWaiting: true
 });
 
 module.exports = withContentlayer(withPWA(nextConfig));
