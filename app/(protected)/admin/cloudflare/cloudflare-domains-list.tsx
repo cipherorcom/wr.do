@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -39,6 +40,9 @@ interface CloudflareDomain {
   configId: string;
   createdAt: string;
   updatedAt: string;
+  useDNS: boolean;
+  useEmails: boolean;
+  useShortURL: boolean;
 }
 
 function TableCellSkeleton() {
@@ -51,6 +55,7 @@ function TableCellSkeleton() {
 
 export default function CloudflareDomainsList() {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [updatingDomain, setUpdatingDomain] = useState<string | null>(null);
   
   const { data, isLoading, mutate } = useSWR<{domains: CloudflareDomain[]}>("/api/admin/cloudflare/domains", fetcher, {
     revalidateOnFocus: false,
@@ -86,13 +91,62 @@ export default function CloudflareDomainsList() {
     }
   };
 
+  const updateDomainUsage = async (domainId: string, field: 'useDNS' | 'useEmails' | 'useShortURL', value: boolean) => {
+    try {
+      setUpdatingDomain(domainId);
+      
+      const response = await fetch(`/api/admin/cloudflare/domains/${domainId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          [field]: value
+        }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "更新域名用途失败");
+      }
+      
+      toast({
+        title: "域名用途已更新",
+        description: "域名配置已成功保存",
+      });
+      
+      // 乐观更新UI
+      mutate(
+        data => ({
+          domains: data?.domains.map(domain => 
+            domain.id === domainId 
+              ? { ...domain, [field]: value }
+              : domain
+          ) || []
+        }),
+        false
+      );
+      
+      // 然后获取最新数据
+      mutate();
+    } catch (error: any) {
+      toast({
+        title: "更新失败",
+        description: error.message || "更新域名用途时出错",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingDomain(null);
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center">
         <div>
-          <CardTitle>域名列表</CardTitle>
+          <CardTitle>域名管理</CardTitle>
           <CardDescription>
-            从Cloudflare账号中获取的域名列表
+            管理Cloudflare域名的用途配置，包括DNS、邮件和短链接服务
           </CardDescription>
         </div>
         <div className="ml-auto">
@@ -111,14 +165,16 @@ export default function CloudflareDomainsList() {
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         {isLoading ? (
-          <Table>
-            <TableHeader className="bg-gray-100/50 dark:bg-primary-foreground">
-              <TableRow>
-                <TableHead>域名</TableHead>
-                <TableHead>Zone ID</TableHead>
-                <TableHead>添加时间</TableHead>
+          <Table className="pt-2">
+            <TableHeader className="bg-gray-100/50 dark:bg-primary-foreground py-4">
+              <TableRow className="py-3">
+                <TableHead className="py-3">域名</TableHead>
+                <TableHead className="py-3">DNS</TableHead>
+                <TableHead className="py-3">邮件</TableHead>
+                <TableHead className="py-3">短链接</TableHead>
+                <TableHead className="py-3">添加时间</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -126,13 +182,19 @@ export default function CloudflareDomainsList() {
                 <TableCellSkeleton />
                 <TableCellSkeleton />
                 <TableCellSkeleton />
-              </TableRow>
-              <TableRow>
-                <TableCellSkeleton />
                 <TableCellSkeleton />
                 <TableCellSkeleton />
               </TableRow>
               <TableRow>
+                <TableCellSkeleton />
+                <TableCellSkeleton />
+                <TableCellSkeleton />
+                <TableCellSkeleton />
+                <TableCellSkeleton />
+              </TableRow>
+              <TableRow>
+                <TableCellSkeleton />
+                <TableCellSkeleton />
                 <TableCellSkeleton />
                 <TableCellSkeleton />
                 <TableCellSkeleton />
@@ -150,19 +212,21 @@ export default function CloudflareDomainsList() {
             </EmptyPlaceholder.Description>
           </EmptyPlaceholder>
         ) : (
-          <Table>
-            <TableHeader className="bg-gray-100/50 dark:bg-primary-foreground">
-              <TableRow className="grid grid-cols-3 items-center">
-                <TableHead className="col-span-1 font-bold">域名</TableHead>
-                <TableHead className="col-span-1 font-bold">Zone ID</TableHead>
-                <TableHead className="col-span-1 font-bold">添加时间</TableHead>
+          <Table className="pt-2">
+            <TableHeader className="bg-gray-100/50 dark:bg-primary-foreground py-4">
+              <TableRow className="grid grid-cols-5 items-center py-3">
+                <TableHead className="col-span-1 font-bold py-3">域名</TableHead>
+                <TableHead className="col-span-1 font-bold text-center py-3">DNS 管理</TableHead>
+                <TableHead className="col-span-1 font-bold text-center py-3">邮件服务</TableHead>
+                <TableHead className="col-span-1 font-bold text-center py-3">短链接服务</TableHead>
+                <TableHead className="col-span-1 font-bold py-3">添加时间</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {data.domains.map((domain) => (
                 <TableRow
                   key={domain.id}
-                  className="grid animate-fade-in grid-cols-3 items-center animate-in"
+                  className="grid animate-fade-in grid-cols-5 items-center animate-in h-14"
                 >
                   <TableCell className="col-span-1 truncate">
                     <TooltipProvider>
@@ -176,17 +240,38 @@ export default function CloudflareDomainsList() {
                       </Tooltip>
                     </TooltipProvider>
                   </TableCell>
-                  <TableCell className="col-span-1 truncate">
-                    <TooltipProvider>
-                      <Tooltip delayDuration={200}>
-                        <TooltipTrigger className="truncate">
-                          {domain.zoneId}
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {domain.zoneId}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                  <TableCell className="col-span-1 text-center">
+                    <div className="flex items-center justify-center">
+                      <Switch
+                        checked={domain.useDNS}
+                        disabled={updatingDomain === domain.id}
+                        onCheckedChange={(checked) => 
+                          updateDomainUsage(domain.id, 'useDNS', checked)
+                        }
+                      />
+                    </div>
+                  </TableCell>
+                  <TableCell className="col-span-1 text-center">
+                    <div className="flex items-center justify-center">
+                      <Switch
+                        checked={domain.useEmails}
+                        disabled={updatingDomain === domain.id}
+                        onCheckedChange={(checked) => 
+                          updateDomainUsage(domain.id, 'useEmails', checked)
+                        }
+                      />
+                    </div>
+                  </TableCell>
+                  <TableCell className="col-span-1 text-center">
+                    <div className="flex items-center justify-center">
+                      <Switch
+                        checked={domain.useShortURL}
+                        disabled={updatingDomain === domain.id}
+                        onCheckedChange={(checked) => 
+                          updateDomainUsage(domain.id, 'useShortURL', checked)
+                        }
+                      />
+                    </div>
                   </TableCell>
                   <TableCell className="col-span-1">
                     {timeAgo(new Date(domain.createdAt))}
