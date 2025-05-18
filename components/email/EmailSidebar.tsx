@@ -587,7 +587,7 @@ export default function EmailSidebar({
                 <div className="flex">
                   <Input
                     id="emailAddress"
-                    className="flex-1 rounded-r-none shadow-inner"
+                    className="w-2/5 rounded-r-none shadow-inner"
                     autoFocus
                     disabled={isPending}
                   />
@@ -607,7 +607,7 @@ export default function EmailSidebar({
                         .catch(error => console.error("获取域名详情失败:", error));
                     }}
                     disabled={isEdit}
-                    className="w-1/3 rounded-none border-x-0"
+                    className="w-3/5 rounded-none border-x-0 h-9"
                   />
                   <Button
                     className="rounded-l-none"

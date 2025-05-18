@@ -82,8 +82,8 @@ export function DomainSelect({
     fetchDomains();
   }, [domainType]);
   
-  // 获取当前选中域名的名称
-  const selectedDomain = domains.find(domain => domain.id === value);
+  // 获取当前选中域名的名称（通过域名或ID匹配）
+  const selectedDomain = domains.find(domain => domain.id === value || domain.domainName === value);
   
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -93,7 +93,7 @@ export function DomainSelect({
           role="combobox"
           aria-expanded={open}
           disabled={disabled}
-          className={cn("w-full justify-between h-10 px-4 py-2 text-sm", className)}
+          className={cn("w-full justify-between h-9 px-3 py-2 text-sm", className)}
         >
           {loading ? (
             <Icons.spinner className="size-4 animate-spin" />
@@ -124,7 +124,7 @@ export function DomainSelect({
                   <CheckIcon
                     className={cn(
                       "ml-auto size-5",
-                      value === domain.id ? "text-primary opacity-100" : "opacity-0"
+                      value === domain.id || value === domain.domainName ? "text-primary opacity-100" : "opacity-0"
                     )}
                   />
                 </CommandItem>
