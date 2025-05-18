@@ -21,7 +21,6 @@ export const env = createEnv({
     CLOUDFLARE_GLOBAL_KEY: z.string().min(1),
     CLOUDFLARE_EMAIL: z.string().min(1),
     SCREENSHOTONE_BASE_URL: z.string().optional(),
-    GITHUB_TOKEN: z.string().optional(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().min(1),
@@ -47,7 +46,6 @@ export const env = createEnv({
     CLOUDFLARE_GLOBAL_KEY: process.env.CLOUDFLARE_GLOBAL_KEY,
     CLOUDFLARE_EMAIL: process.env.CLOUDFLARE_EMAIL,
     SCREENSHOTONE_BASE_URL: process.env.SCREENSHOTONE_BASE_URL,
-    GITHUB_TOKEN: process.env.GITHUB_TOKEN,
     LinuxDo_CLIENT_ID: process.env.LinuxDo_CLIENT_ID,
     LinuxDo_CLIENT_SECRET: process.env.LinuxDo_CLIENT_SECRET,
     RESEND_DOMAIN: process.env.RESEND_DOMAIN,

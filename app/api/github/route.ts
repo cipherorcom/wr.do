@@ -1,8 +1,6 @@
 // app/api/github-stars/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-import { env } from "@/env.mjs";
-
 interface GitHubResponse {
   stargazers_count: number;
   message?: string;
@@ -23,18 +21,12 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const { GITHUB_TOKEN } = env;
-
-    if (!GITHUB_TOKEN) {
-      throw new Error("GitHub token is not configured");
-    }
-
+    // 使用公共API，不再需要token
     const response = await fetch(
       `https://api.github.com/repos/${owner}/${repo}`,
       {
         headers: {
           Accept: "application/vnd.github.v3+json",
-          Authorization: `token ${GITHUB_TOKEN}`,
           "User-Agent": "NextJS-App",
         },
         // 添加缓存策略
@@ -70,6 +62,7 @@ export async function GET(request: NextRequest) {
           error instanceof Error
             ? error.message
             : "Failed to fetch GitHub stars",
+        stars: 0, // 返回默认值
       },
       { status: 500 },
     );

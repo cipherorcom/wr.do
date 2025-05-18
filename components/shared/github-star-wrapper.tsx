@@ -10,27 +10,27 @@ interface GitHubResponse {
 }
 
 async function getGitHubStars(owner: string, repo: string) {
-  const githubToken = process.env.GITHUB_TOKEN;
+  try {
+    // 使用公共API，不需要token
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: {
+        Accept: "application/vnd.github.v3+json",
+        "User-Agent": "NextJS-App",
+      },
+      next: { revalidate: 3600 },
+    });
 
-  if (!githubToken) {
-    throw new Error("GitHub token is not configured");
+    if (!res.ok) {
+      throw new Error("Failed to fetch GitHub stars");
+    }
+
+    const data: GitHubResponse = await res.json();
+    return data.stargazers_count;
+  } catch (error) {
+    console.error("Error fetching GitHub stars:", error);
+    // 如果API调用失败，返回默认值
+    return 0;
   }
-
-  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-    headers: {
-      Accept: "application/vnd.github.v3+json",
-      Authorization: `token ${githubToken}`,
-      "User-Agent": "NextJS-App",
-    },
-    next: { revalidate: 3600 },
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch GitHub stars");
-  }
-
-  const data: GitHubResponse = await res.json();
-  return data.stargazers_count;
 }
 
 interface Props {
