@@ -109,6 +109,9 @@ export async function POST(req: Request) {
       id: generateSecret(16),
       // type: "CNAME",
     };
+    
+    // 记录proxied状态
+    console.log("[记录proxied状态]", record.proxied);
 
     // 保存完整域名用于数据库记录
     const fullDomainName = record.name;
