@@ -217,55 +217,50 @@ export default function LiveLog({ admin }: { admin: boolean }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <AnimatePresence initial={false}>
-                  {logs.map((log, index) => (
-                    <motion.tr
-                      key={`${log.ip}-${log.slug}`}
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{
-                        opacity: 1,
-                        height: "auto",
-                        backgroundColor: getRowBackground(index, log.isNew),
-                      }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{
-                        duration: 0,
-                        backgroundColor: {
-                          duration: 0.5,
-                          ease: "linear",
-                        },
-                      }}
-                      className="font-mono text-xs hover:bg-gray-200 dark:border-gray-800"
-                    >
-                      <TableCell className="whitespace-nowrap px-1 py-1.5">
-                        {new Date(log.updatedAt).toLocaleString()}
-                      </TableCell>
-                      <TableCell className="font-midium px-1 py-1.5 text-green-700">
-                        {log.slug}
-                      </TableCell>
-                      <TableCell className="max-w-10 truncate px-1 py-1.5 hover:underline">
-                        <a href={log.target} target="_blank" title={log.target}>
-                          {log.target}
-                        </a>
-                      </TableCell>
-
-                      <TableCell className="px-1 py-1.5">{log.ip}</TableCell>
-                      <TableCell
-                        className="max-w-6 truncate px-1 py-1.5"
-                        title={getCountryName(log.country || "")}
-                      >
-                        {decodeURIComponent(
-                          log.city
-                            ? `${log.city},${getCountryName(log.country || "")}`
-                            : "-",
-                        )}
-                      </TableCell>
-                      <TableCell className="px-1 py-1.5 text-green-700">
-                        {log.click}
-                      </TableCell>
-                    </motion.tr>
-                  ))}
-                </AnimatePresence>
+                {logs.map((log, index) => (
+                  <TableRow
+                    key={`${log.ip}-${log.slug}`}
+                    style={{
+                      backgroundColor: getRowBackground(index, log.isNew),
+                      transition: "background-color 0.5s ease",
+                    }}
+                    className="font-mono text-xs hover:bg-gray-200 dark:border-gray-800"
+                  >
+                    <TableCell className="whitespace-nowrap px-1 py-1.5">
+                      {new Date(log.updatedAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="font-midium px-1 py-1.5 text-green-700">
+                      {log.slug}
+                    </TableCell>
+                    <TableCell className="max-w-10 truncate px-1 py-1.5 hover:underline">
+                      <a href={log.target} target="_blank" title={log.target}>
+                        {log.target}
+                      </a>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap px-1 py-1.5">
+                      {log.ip}
+                    </TableCell>
+                    <TableCell className="px-1 py-1.5">
+                      {log.country && (
+                        <div className="inline-flex items-center gap-1">
+                          <img
+                            src={`https://flag.vercel.app/m/${log.country.toLowerCase()}.svg`}
+                            className="inline-block h-4 w-4"
+                            loading="lazy"
+                            alt={log.country}
+                          />
+                          <span>
+                            {log.city ? log.city + ", " : ""}
+                            {log.country
+                              ? getCountryName(log.country)
+                              : "Unknown"}
+                          </span>
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="px-1 py-1.5">{log.click}</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>

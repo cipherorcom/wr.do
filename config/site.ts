@@ -14,11 +14,8 @@ export const siteConfig: SiteConfig = {
   url: site_url,
   ogImage: `${site_url}/_static/og.jpg`,
   links: {
-    twitter: "https://twitter.com/yesmoree",
-    github: "https://github.com/oiov/wr.do",
-    feedback: "https://github.com/oiov/wr.do/issues",
-    discord: "https://discord.gg/AHPQYuZu3m",
-    oichat: "https://oi.wr.do",
+    github: "https://github.com/cipherorcom/wr.do",
+    telegram: "https://t.me/cipheror_com",
   },
   mailSupport: "support@wr.do",
   openSignup: open_signup === "1" ? true : false,
@@ -41,11 +38,7 @@ export const footerLinks: SidebarNavItem[] = [
   {
     title: "Products",
     items: [
-      { title: "Vmail", href: "https://vmail.dev" },
-      { title: "Moise", href: "https://moise.oiov.dev" },
-      // { title: "Inke", href: "https://inke.wr.do" },
-      { title: "Iconce", href: "https://iconce.com" },
-      { title: "OiChat", href: siteConfig.links.oichat },
+      { title: "Home", href: "https://cipheror.com" },
     ],
   },
   {

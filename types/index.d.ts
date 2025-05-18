@@ -10,11 +10,8 @@ export type SiteConfig = {
   ogImage: string;
   mailSupport: string;
   links: {
-    twitter: string;
     github: string;
-    feedback: string;
-    discord: string;
-    oichat: string;
+    telegram: string;
   };
   openSignup: boolean;
   shortDomains: string[];

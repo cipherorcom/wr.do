@@ -316,13 +316,17 @@ export default function UserRecordsList({ user, action }: RecordListProps) {
                   </TableRow>
                 ))
               ) : (
-                <EmptyPlaceholder>
-                  <EmptyPlaceholder.Icon name="globeLock" />
-                  <EmptyPlaceholder.Title>No records</EmptyPlaceholder.Title>
-                  <EmptyPlaceholder.Description>
-                    You don&apos;t have any record yet. Start creating record.
-                  </EmptyPlaceholder.Description>
-                </EmptyPlaceholder>
+                <TableRow className="grid grid-cols-3 sm:grid-cols-8">
+                  <TableCell colSpan={8} className="col-span-3 sm:col-span-8">
+                    <EmptyPlaceholder>
+                      <EmptyPlaceholder.Icon name="globeLock" />
+                      <EmptyPlaceholder.Title>No records</EmptyPlaceholder.Title>
+                      <EmptyPlaceholder.Description>
+                        You don&apos;t have any record yet. Start creating record.
+                      </EmptyPlaceholder.Description>
+                    </EmptyPlaceholder>
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
             {data && Math.ceil(data.total / pageSize) > 1 && (

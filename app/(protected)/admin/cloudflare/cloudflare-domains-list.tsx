@@ -41,19 +41,11 @@ interface CloudflareDomain {
   updatedAt: string;
 }
 
-function TableColumnSkeleton() {
+function TableCellSkeleton() {
   return (
-    <TableRow className="grid grid-cols-3 items-center">
-      <TableCell className="col-span-1">
-        <Skeleton className="h-5 w-20" />
-      </TableCell>
-      <TableCell className="col-span-1">
-        <Skeleton className="h-5 w-20" />
-      </TableCell>
-      <TableCell className="col-span-1">
-        <Skeleton className="h-5 w-16" />
-      </TableCell>
-    </TableRow>
+    <TableCell>
+      <Skeleton className="h-5 w-full" />
+    </TableCell>
   );
 }
 
@@ -121,11 +113,32 @@ export default function CloudflareDomainsList() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="space-y-2">
-            <TableColumnSkeleton />
-            <TableColumnSkeleton />
-            <TableColumnSkeleton />
-          </div>
+          <Table>
+            <TableHeader className="bg-gray-100/50 dark:bg-primary-foreground">
+              <TableRow>
+                <TableHead>域名</TableHead>
+                <TableHead>Zone ID</TableHead>
+                <TableHead>添加时间</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCellSkeleton />
+                <TableCellSkeleton />
+                <TableCellSkeleton />
+              </TableRow>
+              <TableRow>
+                <TableCellSkeleton />
+                <TableCellSkeleton />
+                <TableCellSkeleton />
+              </TableRow>
+              <TableRow>
+                <TableCellSkeleton />
+                <TableCellSkeleton />
+                <TableCellSkeleton />
+              </TableRow>
+            </TableBody>
+          </Table>
         ) : !data?.domains || data.domains.length === 0 ? (
           <EmptyPlaceholder>
             <EmptyPlaceholder.Icon name="globe">

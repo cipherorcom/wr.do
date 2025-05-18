@@ -298,8 +298,11 @@ export default function UserUrlsList({ user, action }: UrlListProps) {
                 </>
               ) : data && data.list && data.list.length ? (
                 data.list.map((short) => (
-                  <div className="border-b" key={short.id}>
-                    <TableRow className="grid grid-cols-3 items-center sm:grid-cols-11">
+                  <>
+                    <TableRow 
+                      key={short.id}
+                      className="grid grid-cols-3 items-center sm:grid-cols-11 border-b"
+                    >
                       <TableCell className="col-span-1 flex items-center gap-1 sm:col-span-2">
                         <Link
                           className="overflow-hidden text-ellipsis whitespace-normal text-slate-600 hover:text-blue-400 hover:underline dark:text-slate-400"
@@ -401,26 +404,34 @@ export default function UserUrlsList({ user, action }: UrlListProps) {
                       </TableCell>
                     </TableRow>
                     {isShowStats && selectedUrl?.id === short.id && (
-                      <UserUrlMetaInfo
-                        user={{
-                          id: user.id,
-                          name: user.name || "",
-                          team: user.team,
-                        }}
-                        action="/api/url/meta"
-                        urlId={short.id!}
-                      />
+                      <TableRow>
+                        <TableCell colSpan={11} className="p-0">
+                          <UserUrlMetaInfo
+                            user={{
+                              id: user.id,
+                              name: user.name || "",
+                              team: user.team,
+                            }}
+                            action="/api/url/meta"
+                            urlId={short.id!}
+                          />
+                        </TableCell>
+                      </TableRow>
                     )}
-                  </div>
+                  </>
                 ))
               ) : (
-                <EmptyPlaceholder>
-                  <EmptyPlaceholder.Icon name="link" />
-                  <EmptyPlaceholder.Title>No urls</EmptyPlaceholder.Title>
-                  <EmptyPlaceholder.Description>
-                    You don&apos;t have any url yet. Start creating url.
-                  </EmptyPlaceholder.Description>
-                </EmptyPlaceholder>
+                <TableRow className="grid grid-cols-3 sm:grid-cols-11">
+                  <TableCell colSpan={11} className="col-span-3 sm:col-span-11">
+                    <EmptyPlaceholder>
+                      <EmptyPlaceholder.Icon name="link" />
+                      <EmptyPlaceholder.Title>No urls</EmptyPlaceholder.Title>
+                      <EmptyPlaceholder.Description>
+                        You don&apos;t have any url yet. Start creating url.
+                      </EmptyPlaceholder.Description>
+                    </EmptyPlaceholder>
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
             {data && Math.ceil(data.total / pageSize) > 1 && (

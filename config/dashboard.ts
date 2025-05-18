@@ -86,16 +86,6 @@ export const sidebarLinks: SidebarNavItem[] = [
       { href: "/dashboard/settings", icon: "settings", title: "Settings" },
       { href: "/docs", icon: "bookOpen", title: "Documentation" },
       {
-        href: siteConfig.links.oichat,
-        icon: "botMessageSquare",
-        title: "OiChat",
-      },
-      {
-        href: siteConfig.links.feedback,
-        icon: "messageQuoted",
-        title: "Feedback",
-      },
-      {
         href: "mailto:" + siteConfig.mailSupport,
         icon: "mail",
         title: "Support",
