@@ -105,23 +105,18 @@ export function RecordForm({
       }
       
       if (initData.zone_id) {
-        fetch("/api/admin/cloudflare/domains")
+        fetch("/api/domains/available?type=dns")
           .then(response => response.json())
           .then(data => {
-            const domain = data.domains.find((d: any) => d.zoneId === initData.zone_id);
+            const domain = data.domains.find((d: any) => d.id === initData.zone_id || d.domainName === zoneName);
             if (domain) {
               console.log("找到记录所属域名:", domain);
               setSelectedDomainId(domain.id);
               setSelectedDomainName(domain.domainName);
             } else {
-              console.warn("未找到匹配的域名，将使用记录中的域名ID作为备选");
-              // 在找不到匹配域名的情况下，尝试直接使用记录中的数据
-              const fallbackDomain = data.domains.find((d: any) => d.domainName === zoneName);
-              if (fallbackDomain) {
-                console.log("找到匹配域名名称的域名:", fallbackDomain);
-                setSelectedDomainId(fallbackDomain.id);
-                setSelectedDomainName(fallbackDomain.domainName);
-              }
+              console.warn("未找到匹配的域名，将使用记录中的域名名称作为备选");
+              // 在找不到匹配域名的情况下，使用记录中的域名名称
+              setSelectedDomainName(zoneName);
             }
           })
           .catch(error => console.error("获取域名详情失败:", error));
@@ -142,7 +137,7 @@ export function RecordForm({
     
     console.log("选择了域名ID:", domainId);
     
-    fetch("/api/admin/cloudflare/domains")
+    fetch("/api/domains/available?type=dns")
       .then(response => response.json())
       .then(data => {
         const domain = data.domains.find((d: any) => d.id === domainId);
@@ -245,7 +240,7 @@ export function RecordForm({
         if (!domainIdToUse && initData?.zone_id) {
           console.log("selectedDomainId为空，尝试从域名列表获取");
           try {
-            const response = await fetch("/api/admin/cloudflare/domains");
+            const response = await fetch("/api/domains/available?type=dns");
             const domainData = await response.json();
             const domain = domainData.domains.find((d: any) => d.zoneId === initData.zone_id);
             if (domain) {

@@ -24,9 +24,9 @@ export type DomainType = "dns" | "email" | "shortUrl";
 interface Domain {
   id: string;
   domainName: string;
-  useDNS: boolean;
-  useEmails: boolean;
-  useShortURL: boolean;
+  canUseDNS: boolean;
+  canUseEmails: boolean;
+  canUseShortURL: boolean;
 }
 
 interface DomainSelectProps {
@@ -54,24 +54,24 @@ export function DomainSelect({
     const fetchDomains = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/admin/cloudflare/domains");
+        
+        // 根据域名类型构建查询参数
+        let apiUrl = "/api/domains/available";
+        if (domainType === "dns") {
+          apiUrl += "?type=dns";
+        } else if (domainType === "email") {
+          apiUrl += "?type=email";
+        } else if (domainType === "shortUrl") {
+          apiUrl += "?type=shorturl";
+        }
+        
+        const response = await fetch(apiUrl);
         if (!response.ok) {
           throw new Error("获取域名列表失败");
         }
         
         const data = await response.json();
-        // 根据域名类型筛选域名
-        let filteredDomains = data.domains as Domain[];
-        
-        if (domainType === "dns") {
-          filteredDomains = filteredDomains.filter(domain => domain.useDNS);
-        } else if (domainType === "email") {
-          filteredDomains = filteredDomains.filter(domain => domain.useEmails);
-        } else if (domainType === "shortUrl") {
-          filteredDomains = filteredDomains.filter(domain => domain.useShortURL);
-        }
-        
-        setDomains(filteredDomains);
+        setDomains(data.domains);
       } catch (error) {
         console.error("加载域名失败:", error);
       } finally {

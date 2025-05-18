@@ -85,7 +85,7 @@ export function UrlForm({
     setSelectedDomainId(domainId);
     
     // 获取域名详情
-    fetch("/api/admin/cloudflare/domains")
+    fetch("/api/domains/available?type=shorturl")
       .then(response => response.json())
       .then(data => {
         const domain = data.domains.find((d: any) => d.id === domainId);

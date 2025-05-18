@@ -606,7 +606,7 @@ export default function EmailSidebar({
                     placeholder="选择域名"
                     value={domainSuffix || ""}
                     onValueChange={(domainId) => {
-                      fetch("/api/admin/cloudflare/domains")
+                      fetch("/api/domains/available?type=email")
                         .then(response => response.json())
                         .then(data => {
                           const domain = data.domains.find((d: any) => d.id === domainId);
