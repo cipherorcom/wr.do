@@ -94,7 +94,7 @@ export async function PATCH(
         const updatedDomains = await tx.$queryRawUnsafe(
           `SELECT * FROM cloudflare_domains WHERE id = $1`,
           domainId
-        );
+        ) as any[];
         
         return updatedDomains[0];
       });
