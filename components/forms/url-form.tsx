@@ -1,6 +1,6 @@
 "use client";
 
-import { Dispatch, SetStateAction, useTransition } from "react";
+import { Dispatch, SetStateAction, useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { User } from "@prisma/client";
 import { Sparkles } from "lucide-react";
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Icons } from "@/components/shared/icons";
+import { DomainSelect } from "@/components/shared/domain-select";
 
 import { FormSectionColumns } from "../dashboard/form-section-columns";
 import {
@@ -26,6 +27,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Switch } from "../ui/switch";
+import { useShortDomainsContext } from "@/components/providers/short-domains-provider";
 
 export type FormData = ShortUrlFormData;
 
@@ -51,27 +53,56 @@ export function UrlForm({
   const [isPending, startTransition] = useTransition();
   const [isDeleting, startDeleteTransition] = useTransition();
 
+  const { domains, loading: loadingDomains } = useShortDomainsContext();
+  
+  // 域名选择状态
+  const [selectedDomainId, setSelectedDomainId] = useState<string>("");
+  const [selectedDomain, setSelectedDomain] = useState<string>(initData?.prefix || "");
+
   const {
     handleSubmit,
     register,
     formState: { errors },
     getValues,
     setValue,
+    watch,
   } = useForm<FormData>({
     resolver: zodResolver(createUrlSchema),
     defaultValues: {
       id: initData?.id || "",
       target: initData?.target || "",
-      url: initData?.url || "",
+      url: initData?.url || generateUrlSuffix(6),
       active: initData?.active || 1,
-      prefix: initData?.prefix || siteConfig.shortDomains[0],
-      visible: initData?.visible || 0,
+      prefix: initData?.prefix || (domains.length > 0 ? domains[0] : ""),
+      visible: initData?.visible || 1,
       expiration: initData?.expiration || "-1",
       password: initData?.password || "",
     },
   });
 
+  // 处理域名选择
+  const handleDomainChange = (domainId: string) => {
+    setSelectedDomainId(domainId);
+    
+    // 获取域名详情
+    fetch("/api/admin/cloudflare/domains")
+      .then(response => response.json())
+      .then(data => {
+        const domain = data.domains.find((d: any) => d.id === domainId);
+        if (domain) {
+          setSelectedDomain(domain.domainName);
+          setValue("prefix", domain.domainName);
+        }
+      })
+      .catch(error => console.error("获取域名详情失败:", error));
+  };
+
   const onSubmit = handleSubmit((data) => {
+    if (type === "add" && !data.prefix) {
+      toast.error("请先选择域名");
+      return;
+    }
+    
     if (type === "add") {
       handleCreateUrl(data);
     } else if (type === "edit") {
@@ -158,7 +189,27 @@ export function UrlForm({
       <div className="rounded-t-lg bg-muted px-4 py-2 text-lg font-semibold">
         {type === "add" ? "Create" : "Edit"} short link
       </div>
+      
       <form className="p-4" onSubmit={onSubmit}>
+        {/* 域名选择区域 - 与record表单保持一致放在第一位 */}
+        {type === "add" && (
+          <div className="mb-4">
+            <FormSectionColumns title="域名" required>
+              <DomainSelect
+                domainType="shortUrl"
+                placeholder="选择要添加短链接的域名"
+                value={selectedDomainId}
+                onValueChange={handleDomainChange}
+                disabled={loadingDomains}
+              />
+              <p className="p-1 text-[13px] text-muted-foreground">
+                请先选择要添加短链接的域名
+              </p>
+            </FormSectionColumns>
+          </div>
+        )}
+
+        {/* 其他表单项分组排列 */}
         <div className="items-center justify-start gap-4 md:flex">
           <FormSectionColumns title="Target URL" required>
             <div className="flex w-full items-center gap-2">
@@ -167,7 +218,7 @@ export function UrlForm({
               </Label>
               <Input
                 id="target"
-                className="flex-1 shadow-inner"
+                className="flex-1 shadow-inner h-9"
                 size={32}
                 {...register("target")}
               />
@@ -184,51 +235,33 @@ export function UrlForm({
               )}
             </div>
           </FormSectionColumns>
-          <FormSectionColumns title="Short Link" required>
+
+          <FormSectionColumns title="Short Link Suffix" required>
             <div className="flex w-full items-center gap-2">
               <Label className="sr-only" htmlFor="url">
-                Url
+                Url Suffix
               </Label>
-
-              <div className="relative flex w-full items-center">
-                <Select
-                  onValueChange={(value: string) => {
-                    setValue("prefix", value);
-                  }}
-                  name="prefix"
-                  defaultValue={initData?.prefix || siteConfig.shortDomains[0]}
-                  disabled={type === "edit"}
-                >
-                  <SelectTrigger className="w-1/3 rounded-r-none border-r-0 shadow-inner">
-                    <SelectValue placeholder="Select a domain" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {siteConfig.shortDomains.map((v) => (
-                      <SelectItem key={v} value={v}>
-                        {v}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="relative w-full">
                 <Input
                   id="url"
-                  className="w-full rounded-none pl-[8px] shadow-inner"
-                  size={20}
+                  className="w-full shadow-inner h-9"
                   {...register("url")}
                   disabled={type === "edit"}
                 />
-                <Button
-                  className="rounded-l-none border-l-0"
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={type === "edit"}
-                  onClick={() => {
-                    setValue("url", generateUrlSuffix(6));
-                  }}
-                >
-                  <Sparkles className="h-4 w-4 text-slate-500" />
-                </Button>
+                <div className="absolute right-0 top-0">
+                  <Button
+                    className="h-9 px-2 rounded-l-none"
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={type === "edit"}
+                    onClick={() => {
+                      setValue("url", generateUrlSuffix(6));
+                    }}
+                  >
+                    <Sparkles className="h-4 w-4 text-slate-500" />
+                  </Button>
+                </div>
               </div>
             </div>
             <div className="flex flex-col justify-between p-1">
@@ -238,14 +271,38 @@ export function UrlForm({
                 </p>
               ) : (
                 <p className="pb-0.5 text-[13px] text-muted-foreground">
-                  A random url suffix. Final url like「wr.do/s/suffix」
+                  最终链接形式为: {selectedDomain || initData?.prefix || (domains.length > 0 ? domains[0] : "")}/s/suffix
                 </p>
               )}
             </div>
           </FormSectionColumns>
         </div>
-
+        
         <div className="items-center justify-start gap-4 md:flex">
+          <FormSectionColumns title="Expiration" required>
+            <Select
+              onValueChange={(value: string) => {
+                setValue("expiration", value);
+              }}
+              name="expiration"
+              defaultValue={initData?.expiration || "-1"}
+            >
+              <SelectTrigger className="w-full shadow-inner h-9">
+                <SelectValue placeholder="Select a time range" />
+              </SelectTrigger>
+              <SelectContent>
+                {EXPIRATION_ENUMS.map((e) => (
+                  <SelectItem key={e.value} value={e.value}>
+                    {e.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="p-1 text-[13px] text-muted-foreground">
+              Expiration time, default for never.
+            </p>
+          </FormSectionColumns>
+
           <FormSectionColumns title="Password (Optional)">
             <div className="flex w-full items-center gap-2">
               <Label className="sr-only" htmlFor="password">
@@ -253,7 +310,7 @@ export function UrlForm({
               </Label>
               <Input
                 id="password"
-                className="flex-1 shadow-inner"
+                className="flex-1 shadow-inner h-9"
                 size={32}
                 maxLength={6}
                 type="password"
@@ -273,109 +330,65 @@ export function UrlForm({
               )}
             </div>
           </FormSectionColumns>
-          <FormSectionColumns title="Expiration" required>
-            <Select
-              onValueChange={(value: string) => {
-                setValue("expiration", value);
-              }}
-              name="expiration"
-              defaultValue={initData?.expiration || "-1"}
-            >
-              <SelectTrigger className="w-full shadow-inner">
-                <SelectValue placeholder="Select a time range" />
-              </SelectTrigger>
-              <SelectContent>
-                {EXPIRATION_ENUMS.map((e) => (
-                  <SelectItem key={e.value} value={e.value}>
-                    {e.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        </div>
+
+        <div className="items-center justify-start gap-4 md:flex">
+          <FormSectionColumns title="Status">
+            <div className="flex w-full h-9 items-center gap-2">
+              <Label className="sr-only" htmlFor="active">
+                Status
+              </Label>
+              <Switch 
+                id="active" 
+                checked={watch("active") === 1}
+                onCheckedChange={(checked) => {
+                  setValue("active", checked ? 1 : 0);
+                }}
+              />
+              <span className="text-sm text-muted-foreground ml-2">
+                {watch("active") === 1 ? "启用" : "禁用"}
+              </span>
+            </div>
             <p className="p-1 text-[13px] text-muted-foreground">
-              Expiration time, default for never.
+              Enable or disable this short link
             </p>
           </FormSectionColumns>
-
-          {/* <div>
-          <p className="text-sm text-gray-700 dark:text-white">
-            Your Final URL:
-          </p>
-          <p className="text-sm text-gray-700 dark:text-white">
-            {getValues("prefix")}/s/{getValues("url")}
-          </p>
-        </div> */}
-          {/* <FormSectionColumns title="Visible">
-          <div className="flex w-full items-center gap-2">
-            <Label className="sr-only" htmlFor="visible">
-              Visible
-            </Label>
-            <Switch
-              id="visible"
-              {...register("visible")}
-              disabled
-              defaultChecked={initData?.visible === 1 || false}
-              onCheckedChange={(value) => setValue("visible", value ? 1 : 0)}
-            />
-          </div>
-          <p className="p-1 text-[13px] text-muted-foreground">
-            Public or private short url.
-          </p>
-        </FormSectionColumns> */}
-          {/* <FormSectionColumns title="Active">
-          <div className="flex w-full items-center gap-2">
-            <Label className="sr-only" htmlFor="active">
-              Active
-            </Label>
-            <Switch
-              id="active"
-              {...register("active")}
-              defaultChecked={initData?.active === 1 || true}
-              onCheckedChange={(value) => setValue("active", value ? 1 : 0)}
-            />
-          </div>
-          <p className="p-1 text-[13px] text-muted-foreground">
-            Enable or disable short url.
-          </p>
-        </FormSectionColumns> */}
         </div>
 
         {/* Action buttons */}
-        <div className="mt-3 flex justify-end gap-3">
+        <div className="mt-6 flex justify-end gap-3">
           {type === "edit" && (
             <Button
               type="button"
               variant="destructive"
-              className="mr-auto w-[80px] px-0"
+              className="mr-auto"
               onClick={() => handleDeleteUrl()}
               disabled={isDeleting}
             >
               {isDeleting ? (
-                <Icons.spinner className="size-4 animate-spin" />
-              ) : (
-                <p>Delete</p>
-              )}
+                <Icons.spinner className="size-4 animate-spin mr-2" />
+              ) : null}
+              Delete
             </Button>
           )}
           <Button
-            type="reset"
+            type="button"
             variant="outline"
-            className="w-[80px] px-0"
-            onClick={() => setShowForm(false)}
+            onClick={() => {
+              setShowForm(false);
+            }}
           >
-            Cancle
+            Cancel
           </Button>
           <Button
             type="submit"
-            variant="blue"
+            variant="default"
             disabled={isPending}
-            className="w-[80px] shrink-0 px-0"
           >
             {isPending ? (
-              <Icons.spinner className="size-4 animate-spin" />
-            ) : (
-              <p>{type === "edit" ? "Update" : "Save"}</p>
-            )}
+              <Icons.spinner className="size-4 animate-spin mr-2" />
+            ) : null}
+            {type === "edit" ? "Update" : "Create"}
           </Button>
         </div>
       </form>

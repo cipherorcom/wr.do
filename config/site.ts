@@ -3,7 +3,6 @@ import { env } from "@/env.mjs";
 
 const site_url = env.NEXT_PUBLIC_APP_URL;
 const open_signup = env.NEXT_PUBLIC_OPEN_SIGNUP;
-const short_domains = env.NEXT_PUBLIC_SHORT_DOMAINS || "";
 const email_r2_domain = env.NEXT_PUBLIC_EMAIL_R2_DOMAIN || "";
 
 export const siteConfig: SiteConfig = {
@@ -18,7 +17,7 @@ export const siteConfig: SiteConfig = {
   },
   mailSupport: "support@cipheror.com",
   openSignup: open_signup === "1" ? true : false,
-  shortDomains: short_domains.split(","),
+  shortDomains: [],
   emailDomains: [],
   emailR2Domain: email_r2_domain,
 };

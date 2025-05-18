@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { User, UserEmail } from "@prisma/client";
 import randomName from "@scaleway/random-name";
 import {
@@ -21,6 +21,7 @@ import { reservedAddressSuffix } from "@/lib/enums";
 import { cn, fetcher, nFormatter, timeAgo } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import ApiReference from "@/app/emails/api-reference";
+import { useShortDomainsContext } from "@/components/providers/short-domains-provider";
 
 import CountUp from "../dashboard/count-up";
 import { CopyButton } from "../shared/copy-button";
@@ -78,18 +79,13 @@ export default function EmailSidebar({
   const [isEdit, setIsEdit] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const [domainSuffix, setDomainSuffix] = useState<string | null>(
-    siteConfig.shortDomains[0],
-  );
+  const [showSendsModal, setShowSendsModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [onlyUnread, setOnlyUnread] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [emailToDelete, setEmailToDelete] = useState<string | null>(null);
   const [deleteInput, setDeleteInput] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [onlyUnread, setOnlyUnread] = useState(false);
-
-  const [showSendsModal, setShowSendsModal] = useState(false);
-
-  const [pageSize, setPageSize] = useState(10);
 
   const { data, isLoading, error, mutate } = useSWR<{
     list: UserEmailList[];
@@ -109,6 +105,20 @@ export default function EmailSidebar({
       dedupingInterval: 5000,
     },
   );
+
+  // 使用上下文获取短域名
+  const { domains } = useShortDomainsContext();
+  
+  const [domainSuffix, setDomainSuffix] = useState<string | null>(
+    domains.length > 0 ? domains[0] : null,
+  );
+  
+  // 当短域名列表更新时，更新domainSuffix
+  useEffect(() => {
+    if (domains.length > 0 && !domainSuffix) {
+      setDomainSuffix(domains[0]);
+    }
+  }, [domains, domainSuffix]);
 
   if (!selectedEmailAddress && data && data.list.length > 0) {
     onSelectEmail(data.list[0].emailAddress);
@@ -587,7 +597,7 @@ export default function EmailSidebar({
                 <div className="flex">
                   <Input
                     id="emailAddress"
-                    className="w-2/5 rounded-r-none shadow-inner"
+                    className="w-2/5 h-9 rounded-r-none shadow-inner"
                     autoFocus
                     disabled={isPending}
                   />
@@ -607,10 +617,10 @@ export default function EmailSidebar({
                         .catch(error => console.error("获取域名详情失败:", error));
                     }}
                     disabled={isEdit}
-                    className="w-3/5 rounded-none border-x-0 h-9"
+                    className="w-3/5 rounded-none border-x-0"
                   />
                   <Button
-                    className="rounded-l-none"
+                    className="rounded-l-none h-9"
                     type="button"
                     size="sm"
                     variant="outline"

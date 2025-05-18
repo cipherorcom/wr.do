@@ -9,6 +9,7 @@ import { cn, constructMetadata } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import ModalProvider from "@/components/modals/providers";
 import { TailwindIndicator } from "@/components/tailwind-indicator";
+import { ShortDomainsProvider } from "@/components/providers/short-domains-provider";
 
 import GoogleAnalytics from "./GoogleAnalytics";
 
@@ -45,9 +46,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
               enableSystem
               disableTransitionOnChange
             >
-              <ModalProvider>{children}</ModalProvider>
-              <Toaster richColors closeButton />
-              <TailwindIndicator />
+              <ShortDomainsProvider>
+                <ModalProvider>{children}</ModalProvider>
+                <Toaster richColors closeButton />
+                <TailwindIndicator />
+              </ShortDomainsProvider>
             </ThemeProvider>
           </SessionProvider>
           <GoogleAnalytics />
