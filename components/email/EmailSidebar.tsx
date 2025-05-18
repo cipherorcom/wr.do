@@ -48,6 +48,7 @@ import {
 } from "../ui/tooltip";
 import { SendEmailModal } from "./SendEmailModal";
 import SendsEmailList from "./SendsEmailList";
+import { DomainSelect } from "../shared/domain-select";
 
 interface EmailSidebarProps {
   user: User;
@@ -583,37 +584,31 @@ export default function EmailSidebar({
                 >
                   Email Address
                 </label>
-                <div className="flex items-center justify-center">
+                <div className="flex">
                   <Input
                     id="emailAddress"
-                    name="emailAddress"
-                    type="text"
-                    placeholder="Enter email suffix"
-                    className="w-full rounded-r-none"
-                    required
-                    defaultValue={
-                      isEdit ? selectedEmailAddress?.split("@")[0] || "" : ""
-                    }
+                    className="flex-1 rounded-r-none shadow-inner"
+                    autoFocus
+                    disabled={isPending}
                   />
-                  <Select
-                    onValueChange={(value: string) => {
-                      setDomainSuffix(value);
+                  <DomainSelect
+                    domainType="email"
+                    placeholder="选择域名"
+                    value={domainSuffix || ""}
+                    onValueChange={(domainId) => {
+                      fetch("/api/admin/cloudflare/domains")
+                        .then(response => response.json())
+                        .then(data => {
+                          const domain = data.domains.find((d: any) => d.id === domainId);
+                          if (domain) {
+                            setDomainSuffix(domain.domainName);
+                          }
+                        })
+                        .catch(error => console.error("获取域名详情失败:", error));
                     }}
-                    name="suffix"
-                    defaultValue={domainSuffix || siteConfig.emailDomains[0]}
                     disabled={isEdit}
-                  >
-                    <SelectTrigger className="w-1/3 rounded-none border-x-0 shadow-inner">
-                      <SelectValue placeholder="Select a domain" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {siteConfig.emailDomains.map((v) => (
-                        <SelectItem key={v} value={v}>
-                          @{v}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    className="w-1/3 rounded-none border-x-0"
+                  />
                   <Button
                     className="rounded-l-none"
                     type="button"

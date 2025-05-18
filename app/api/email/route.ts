@@ -6,6 +6,7 @@ import { checkUserStatus } from "@/lib/dto/user";
 import { reservedAddressSuffix } from "@/lib/enums";
 import { getCurrentUser } from "@/lib/session";
 import { restrictByTimeRange } from "@/lib/team";
+import { prisma } from "@/lib/db";
 
 // 查询所有 UserEmail 地址
 export async function GET(req: NextRequest) {
@@ -59,10 +60,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json("Missing userId or emailAddress", { status: 400 });
   }
 
-  const prefix = emailAddress.split("@")[0];
+  const [prefix, suffix] = emailAddress.split("@");
   if (!prefix || prefix.length < 5) {
     return NextResponse.json("Email address length must be at least 5", {
       status: 400,
+    });
+  }
+  
+  // 从数据库查询已启用邮件服务的域名
+  const enabledDomains = await prisma.$queryRaw`
+    SELECT domain_name FROM cloudflare_domains 
+    WHERE use_emails = true
+  `;
+  
+  // 转换为字符串数组
+  const validDomains = (enabledDomains as { domain_name: string }[]).map(
+    domain => domain.domain_name
+  );
+  
+  if (!validDomains.includes(suffix)) {
+    return NextResponse.json("Invalid email domain or domain not enabled for email service", { 
+      status: 400 
     });
   }
 

@@ -6,6 +6,7 @@ import { checkApiKey } from "@/lib/dto/api-key";
 import { createUserEmail, deleteUserEmailByAddress } from "@/lib/dto/email";
 import { reservedAddressSuffix } from "@/lib/enums";
 import { restrictByTimeRange } from "@/lib/team";
+import { prisma } from "@/lib/db";
 
 // 创建新 UserEmail
 export async function POST(req: NextRequest) {
@@ -53,8 +54,22 @@ export async function POST(req: NextRequest) {
       status: 400,
     });
   }
-  if (!siteConfig.emailDomains.includes(suffix)) {
-    return NextResponse.json("Invalid email suffix address", { status: 400 });
+
+  // 从数据库查询已启用邮件服务的域名
+  const enabledDomains = await prisma.$queryRaw`
+    SELECT domain_name FROM cloudflare_domains 
+    WHERE use_emails = true
+  `;
+  
+  // 转换为字符串数组
+  const validDomains = (enabledDomains as { domain_name: string }[]).map(
+    domain => domain.domain_name
+  );
+  
+  if (!validDomains.includes(suffix)) {
+    return NextResponse.json("Invalid email domain or domain not enabled for email service", { 
+      status: 400 
+    });
   }
 
   if (reservedAddressSuffix.includes(prefix)) {
