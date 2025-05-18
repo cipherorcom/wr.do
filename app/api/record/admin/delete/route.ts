@@ -21,8 +21,8 @@ export async function POST(req: Request) {
       });
     }
 
-    const { CLOUDFLARE_ZONE_ID, CLOUDFLARE_API_KEY, CLOUDFLARE_EMAIL } = env;
-    if (!CLOUDFLARE_ZONE_ID || !CLOUDFLARE_API_KEY || !CLOUDFLARE_EMAIL) {
+    const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_GLOBAL_KEY, CLOUDFLARE_EMAIL } = env;
+    if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_GLOBAL_KEY || !CLOUDFLARE_EMAIL) {
       return Response.json("API key、zone iD and email are required", {
         status: 400,
       });
@@ -30,8 +30,8 @@ export async function POST(req: Request) {
 
     // Delete cf dns record first.
     const res = await deleteDNSRecord(
-      CLOUDFLARE_ZONE_ID,
-      CLOUDFLARE_API_KEY,
+      CLOUDFLARE_ACCOUNT_ID,
+      CLOUDFLARE_GLOBAL_KEY,
       CLOUDFLARE_EMAIL,
       record_id,
     );

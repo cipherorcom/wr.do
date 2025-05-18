@@ -15,15 +15,15 @@ export async function POST(req: Request) {
     if (user instanceof Response) return user;
 
     const {
-      CLOUDFLARE_ZONE_ID,
+      CLOUDFLARE_ACCOUNT_ID,
       CLOUDFLARE_ZONE_NAME,
-      CLOUDFLARE_API_KEY,
+      CLOUDFLARE_GLOBAL_KEY,
       CLOUDFLARE_EMAIL,
     } = env;
     if (
-      !CLOUDFLARE_ZONE_ID ||
+      !CLOUDFLARE_ACCOUNT_ID ||
       !CLOUDFLARE_ZONE_NAME ||
-      !CLOUDFLARE_API_KEY ||
+      !CLOUDFLARE_GLOBAL_KEY ||
       !CLOUDFLARE_EMAIL
     ) {
       return Response.json("API key andzone id are required.", { status: 401 });
@@ -41,8 +41,8 @@ export async function POST(req: Request) {
     }
 
     const data = await updateDNSRecord(
-      CLOUDFLARE_ZONE_ID,
-      CLOUDFLARE_API_KEY,
+      CLOUDFLARE_ACCOUNT_ID,
+      CLOUDFLARE_GLOBAL_KEY,
       CLOUDFLARE_EMAIL,
       recordId,
       record,
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     } else {
       const res = await updateUserRecord(user.id, {
         record_id: data.result.id,
-        zone_id: CLOUDFLARE_ZONE_ID,
+        zone_id: CLOUDFLARE_ACCOUNT_ID,
         zone_name: CLOUDFLARE_ZONE_NAME,
         name: data.result.name,
         type: data.result.type,
@@ -90,8 +90,8 @@ export async function PUT(req: Request) {
     const user = checkUserStatus(await getCurrentUser());
     if (user instanceof Response) return user;
 
-    const { CLOUDFLARE_ZONE_ID, CLOUDFLARE_API_KEY, CLOUDFLARE_EMAIL } = env;
-    if (!CLOUDFLARE_ZONE_ID || !CLOUDFLARE_API_KEY || !CLOUDFLARE_EMAIL) {
+    const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_GLOBAL_KEY, CLOUDFLARE_EMAIL } = env;
+    if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_GLOBAL_KEY || !CLOUDFLARE_EMAIL) {
       return Response.json("API key and zone id are required.", {
         status: 401,
       });

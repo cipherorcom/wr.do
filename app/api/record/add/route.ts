@@ -17,16 +17,16 @@ export async function POST(req: Request) {
     if (user instanceof Response) return user;
 
     const {
-      CLOUDFLARE_ZONE_ID,
+      CLOUDFLARE_ACCOUNT_ID,
       CLOUDFLARE_ZONE_NAME,
-      CLOUDFLARE_API_KEY,
+      CLOUDFLARE_GLOBAL_KEY,
       CLOUDFLARE_EMAIL,
     } = env;
 
     if (
-      !CLOUDFLARE_ZONE_ID ||
+      !CLOUDFLARE_ACCOUNT_ID ||
       !CLOUDFLARE_ZONE_NAME ||
-      !CLOUDFLARE_API_KEY ||
+      !CLOUDFLARE_GLOBAL_KEY ||
       !CLOUDFLARE_EMAIL
     ) {
       return Response.json("API key、zone iD and email are required", {
@@ -78,8 +78,8 @@ export async function POST(req: Request) {
     }
 
     const data = await createDNSRecord(
-      CLOUDFLARE_ZONE_ID,
-      CLOUDFLARE_API_KEY,
+      CLOUDFLARE_ACCOUNT_ID,
+      CLOUDFLARE_GLOBAL_KEY,
       CLOUDFLARE_EMAIL,
       record,
     );
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
     } else {
       const res = await createUserRecord(user.id, {
         record_id: data.result.id,
-        zone_id: CLOUDFLARE_ZONE_ID,
+        zone_id: CLOUDFLARE_ACCOUNT_ID,
         zone_name: CLOUDFLARE_ZONE_NAME,
         name: data.result.name,
         type: data.result.type,

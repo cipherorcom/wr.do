@@ -8,19 +8,19 @@ Before you start, you must have a Cloudflare account and be hosted on Cloudflare
 In this section, you can update these variables:
 
 ```js title=".env"
-CLOUDFLARE_ZONE_ID=abcdef1234567890
-CLOUDFLARE_API_KEY=1234567890abcdef1234567890abcdef
+CLOUDFLARE_ACCOUNT_ID=abcdef1234567890
+CLOUDFLARE_GLOBAL_KEY=1234567890abcdef1234567890abcdef
 CLOUDFLARE_EMAIL=user@example.com
 CLOUDFLARE_ZONE_NAME=wr.do
 ```
 
 ### Variable Descriptions
 
-- **CLOUDFLARE_ZONE_ID**: This is the unique identifier for your Cloudflare zone. You can find it in the Cloudflare dashboard under the Overview section of your domain.
+- **CLOUDFLARE_ACCOUNT_ID**: This is the unique identifier for your Cloudflare zone. You can find it in the Cloudflare dashboard under the Overview section of your domain.
 
 > Follow [this way](https://dash.cloudflare.com/Your_Acount_Id/wr.do), and scroll down to `Zone ID`.
   
-- **CLOUDFLARE_API_KEY**: This is the API key that you use to authenticate requests to the Cloudflare API. You can generate or find your API key in the Cloudflare dashboard under the `profile` -> `api-tokens` section.
+- **CLOUDFLARE_GLOBAL_KEY**: This is the API key that you use to authenticate requests to the Cloudflare API. You can generate or find your API key in the Cloudflare dashboard under the `profile` -> `api-tokens` section.
 
 > Follow [https://dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens), and scroll down to `API Token`, the `Global API Key` should be used.
   

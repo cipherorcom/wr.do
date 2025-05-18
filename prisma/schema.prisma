@@ -247,3 +247,31 @@ model UserSendEmail {
   @@index([createdAt])
   @@map("user_send_emails")
 }
+
+model CloudflareConfig {
+  id                     String   @id @default(uuid())
+  accountId              String   @map("account_id")
+  globalKey              String   @map("global_key")
+  email                  String
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+  
+  domains                CloudflareDomain[]
+
+  @@map("cloudflare_configs")
+}
+
+model CloudflareDomain {
+  id                     String   @id @default(uuid())
+  domainName             String   @map("domain_name")
+  zoneId                 String   @map("zone_id")
+  configId               String   @map("config_id")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+  
+  config                 CloudflareConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@unique([zoneId])
+  @@index([configId])
+  @@map("cloudflare_domains")
+}

@@ -133,13 +133,13 @@ RESEND_API_KEY = re_your_resend_api_key;
 
 Before you start, you must have a Cloudflare account and be hosted on Cloudflare.
 
-### Add the CLOUDFLARE_ZONE_ID Environment Variable
+### Add the CLOUDFLARE_ACCOUNT_ID Environment Variable
 
 This is the unique identifier for your Cloudflare zone. You can find it in the Cloudflare dashboard under the Overview section of your domain.
 
 > Follow [this way](https://dash.cloudflare.com/Your_Acount_Id/wr.do), and scroll down to `Zone ID`.
 
-### Add the CLOUDFLARE_API_KEY Environment Variable
+### Add the CLOUDFLARE_GLOBAL_KEY Environment Variable
 
  This is the API key that you use to authenticate requests to the Cloudflare API. You can generate or find your API key in the Cloudflare dashboard under the `profile` -> `api-tokens` section.
 
@@ -156,9 +156,9 @@ This is the name of your Cloudflare zone. It is used to specify the zone in the 
 In this section, you can update these variables:
 
 ```js title=".env"
-CLOUDFLARE_ZONE_ID=abcdef1234567890
+CLOUDFLARE_ACCOUNT_ID=abcdef1234567890
 CLOUDFLARE_ZONE_NAME=wr.do
-CLOUDFLARE_API_KEY=1234567890abcdef1234567890abcdef
+CLOUDFLARE_GLOBAL_KEY=1234567890abcdef1234567890abcdef
 CLOUDFLARE_EMAIL=user@example.com
 ```
 
