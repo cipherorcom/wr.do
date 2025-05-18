@@ -8,25 +8,27 @@ import CloudflareConfigForm from "./cloudflare-config-form";
 import CloudflareDomainsList from "./cloudflare-domains-list";
 
 export const metadata = constructMetadata({
-  title: "Cloudflare 配置 – Domains",
-  description: "配置 Cloudflare 账号信息和查看域名列表",
+  title: "Cloudflare 配置 – 域名管理",
+  description: "配置 Cloudflare 账号信息和管理域名用途，包括DNS、邮件和短链接服务",
 });
 
-export default async function CloudflarePage() {
+export default async function AdminCloudflare() {
   const user = await getCurrentUser();
-  if (!user || !user?.id) redirect("/login");
-  if (user.role !== "ADMIN") redirect("/dashboard");
+
+  if (!user || user.role !== "ADMIN") {
+    redirect("/");
+  }
 
   return (
-    <>
+    <div className="flex flex-col gap-8">
       <DashboardHeader
         heading="Cloudflare 配置"
-        text="配置 Cloudflare 账号信息和查看域名列表"
+        text="管理您的 Cloudflare 账号信息和域名用途配置"
       />
-      <div className="grid gap-6">
+      <div className="grid gap-8">
         <CloudflareConfigForm />
         <CloudflareDomainsList />
       </div>
-    </>
+    </div>
   );
 } 

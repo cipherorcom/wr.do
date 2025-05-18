@@ -63,9 +63,20 @@ export const createDNSRecord = async (
   try {
     const url = `${CLOUDFLARE_API_URL}/zones/${zoneId}/dns_records`;
 
+    // 打印请求详情以便调试，但隐藏敏感信息
+    console.log("[Cloudflare API请求]", {
+      url,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Auth-Email": email,
+        // 隐藏API Key
+      },
+      body: JSON.stringify(record),
+    });
+
     const headers = {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
       "X-Auth-Email": email,
       "X-Auth-Key": apiKey,
     };
@@ -76,15 +87,37 @@ export const createDNSRecord = async (
       body: JSON.stringify(record),
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error status: ${response.status}`);
+    // 获取响应文本
+    const responseText = await response.text();
+    
+    // 尝试解析为JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error("[Cloudflare API响应解析失败]", responseText);
+      return {
+        success: false,
+        errors: [{ code: 0, message: "响应解析失败: " + responseText }],
+        messages: [],
+      };
     }
 
-    const data = await response.json();
+    // 检查响应状态
+    if (!response.ok) {
+      console.error(`[Cloudflare API错误] ${response.status}:`, data);
+    } else {
+      console.log("[Cloudflare API响应成功]:", data.success);
+    }
+
     return data;
   } catch (error) {
-    // console.error("Error creating DNS record.", error);
-    return error;
+    console.error("[Cloudflare API调用异常]", error);
+    return {
+      success: false,
+      errors: [{ code: 500, message: error.message || "未知错误" }],
+      messages: [],
+    };
   }
 };
 
@@ -99,7 +132,6 @@ export const deleteDNSRecord = async (
 
     const headers = {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
       "X-Auth-Email": email,
       "X-Auth-Key": apiKey,
     };
@@ -133,7 +165,6 @@ export const updateDNSRecord = async (
 
     const headers = {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
       "X-Auth-Email": email,
       "X-Auth-Key": apiKey,
     };
@@ -170,7 +201,6 @@ export const getDNSRecordsList = async (
 
     const headers = {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
       "X-Auth-Email": email,
       "X-Auth-Key": apiKey,
     };
@@ -202,7 +232,6 @@ export const getDNSRecordDetail = async (
 
     const headers = {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
       "X-Auth-Email": email,
       "X-Auth-Key": apiKey,
     };

@@ -480,7 +480,7 @@ export function RecordForm({
             </p>
           </FormSectionColumns>
           <FormSectionColumns title="Proxy">
-            <div className="flex w-full items-center gap-2">
+            <div className="flex w-full h-9 items-center gap-2">
               <Label className="sr-only" htmlFor="proxy">
                 Proxy
               </Label>
@@ -492,9 +492,6 @@ export function RecordForm({
                   console.log("Proxy状态已更改为:", checked);
                 }}
               />
-              <span className="ml-2 text-xs text-muted-foreground">
-                {watch("proxied") ? "已开启" : "已关闭"}
-              </span>
             </div>
             <p className="p-1 text-[13px] text-muted-foreground">
               Proxy status

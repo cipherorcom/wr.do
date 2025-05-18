@@ -88,12 +88,19 @@ export default function UserRecordsList({ user, action }: RecordListProps) {
   const { data, error, isLoading } = useSWR<{
     total: number;
     list: UserRecordFormData[];
-  }>(`${action}?page=${currentPage}&size=${pageSize}`, fetcher, {
-    revalidateOnFocus: false,
-  });
+  }>(
+    `${action}?page=${currentPage}&size=${pageSize}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+    }
+  );
 
   const handleRefresh = () => {
-    mutate(`${action}?page=${currentPage}&size=${pageSize}`, undefined);
+    mutate(
+      `${action}?page=${currentPage}&size=${pageSize}`,
+      undefined
+    );
   };
 
   const handleChangeStatu = async (

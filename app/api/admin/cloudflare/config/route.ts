@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
@@ -15,20 +16,21 @@ export async function GET() {
       );
     }
     
-    // 获取最新的配置
-    const config = await prisma.cloudflareConfig.findFirst({
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        accountId: true,
-        globalKey: true,
-        email: true,
-        createdAt: true,
-        updatedAt: true,
-      }
-    });
+    // 使用原始SQL查询获取最新配置
+    const configs = await prisma.$queryRawUnsafe(`
+      SELECT 
+        id, 
+        account_id AS "accountId", 
+        global_key AS "globalKey", 
+        email, 
+        created_at AS "createdAt", 
+        updated_at AS "updatedAt"
+      FROM cloudflare_configs 
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `);
     
-    return NextResponse.json(config || {});
+    return NextResponse.json(configs?.[0] || {});
   } catch (error) {
     console.error("获取Cloudflare配置失败:", error);
     return NextResponse.json(
@@ -59,32 +61,33 @@ export async function POST(req: Request) {
       );
     }
     
-    // 检查是否已有配置
-    const existingConfig = await prisma.cloudflareConfig.findFirst({
-      orderBy: { createdAt: "desc" }
-    });
+    // 使用原始SQL查询获取最新配置
+    const configs = await prisma.$queryRawUnsafe(`
+      SELECT * FROM cloudflare_configs 
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `);
     
-    let config;
+    let configId;
     
-    if (existingConfig) {
+    if (configs && configs[0]) {
       // 更新现有配置
-      config = await prisma.cloudflareConfig.update({
-        where: { id: existingConfig.id },
-        data: {
-          accountId,
-          globalKey,
-          email,
-        }
-      });
+      await prisma.$executeRawUnsafe(`
+        UPDATE cloudflare_configs
+        SET account_id = $1, global_key = $2, email = $3, updated_at = NOW()
+        WHERE id = $4
+      `, accountId, globalKey, email, configs[0].id);
+      
+      configId = configs[0].id;
     } else {
       // 创建新配置
-      config = await prisma.cloudflareConfig.create({
-        data: {
-          accountId,
-          globalKey,
-          email,
-        }
-      });
+      const newId = crypto.randomUUID();
+      await prisma.$executeRawUnsafe(`
+        INSERT INTO cloudflare_configs (id, account_id, global_key, email, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, NOW(), NOW())
+      `, newId, accountId, globalKey, email);
+      
+      configId = newId;
     }
     
     // 调用Cloudflare API获取域名列表
@@ -109,28 +112,24 @@ export async function POST(req: Request) {
     // 保存域名列表
     for (const zone of data.result) {
       // 检查域名是否已存在
-      const existingDomain = await prisma.cloudflareDomain.findUnique({
-        where: { zoneId: zone.id }
-      });
+      const domains = await prisma.$queryRawUnsafe(`
+        SELECT * FROM cloudflare_domains WHERE zone_id = $1
+      `, zone.id);
       
-      if (existingDomain) {
+      if (domains && domains[0]) {
         // 更新已有域名
-        await prisma.cloudflareDomain.update({
-          where: { id: existingDomain.id },
-          data: {
-            domainName: zone.name,
-            configId: config.id,
-          }
-        });
+        await prisma.$executeRawUnsafe(`
+          UPDATE cloudflare_domains
+          SET domain_name = $1, config_id = $2, updated_at = NOW()
+          WHERE id = $3
+        `, zone.name, configId, domains[0].id);
       } else {
-        // 创建新域名
-        await prisma.cloudflareDomain.create({
-          data: {
-            domainName: zone.name,
-            zoneId: zone.id,
-            configId: config.id,
-          }
-        });
+        // 创建新域名，默认禁用所有用途
+        await prisma.$executeRawUnsafe(`
+          INSERT INTO cloudflare_domains 
+          (id, domain_name, zone_id, config_id, created_at, updated_at, use_dns, use_emails, use_short_url)
+          VALUES ($1, $2, $3, $4, NOW(), NOW(), false, false, false)
+        `, crypto.randomUUID(), zone.name, zone.id, configId);
       }
     }
     

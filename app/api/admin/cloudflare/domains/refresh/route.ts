@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
@@ -15,23 +16,27 @@ export async function POST() {
       );
     }
     
-    // 获取最新的配置
-    const config = await prisma.cloudflareConfig.findFirst({
-      orderBy: { createdAt: "desc" },
-    });
+    // 使用原始SQL查询获取最新配置
+    const configs = await prisma.$queryRawUnsafe(`
+      SELECT * FROM cloudflare_configs 
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `);
     
-    if (!config) {
+    if (!configs || !configs[0]) {
       return NextResponse.json(
         { error: "未找到Cloudflare配置" },
         { status: 404 }
       );
     }
     
+    const config = configs[0];
+    
     // 调用Cloudflare API获取域名列表
-    const response = await fetch(`https://api.cloudflare.com/client/v4/zones?account.id=${config.accountId}&page=1&per_page=50`, {
+    const response = await fetch(`https://api.cloudflare.com/client/v4/zones?account.id=${config.account_id}&page=1&per_page=50`, {
       headers: {
         "X-Auth-Email": config.email,
-        "X-Auth-Key": config.globalKey,
+        "X-Auth-Key": config.global_key,
         "Content-Type": "application/json",
       },
     });
@@ -48,34 +53,42 @@ export async function POST() {
     
     // 保存域名列表
     for (const zone of data.result) {
-      // 检查域名是否已存在
-      const existingDomain = await prisma.cloudflareDomain.findUnique({
-        where: { zoneId: zone.id }
+      // 使用事务处理每个域名的更新
+      await prisma.$transaction(async (tx) => {
+        // 检查域名是否已存在
+        const domains = await tx.$queryRawUnsafe(
+          `SELECT * FROM cloudflare_domains WHERE zone_id = $1`,
+          zone.id
+        );
+        
+        if (domains && Array.isArray(domains) && domains.length > 0) {
+          const existingDomain = domains[0];
+          // 更新已有域名，保留用途设置
+          await tx.$executeRawUnsafe(
+            `UPDATE cloudflare_domains 
+             SET domain_name = $1, config_id = $2 
+             WHERE id = $3`,
+            zone.name,
+            config.id,
+            existingDomain.id
+          );
+        } else {
+          // 创建新域名，默认所有用途都不启用
+          await tx.$executeRawUnsafe(
+            `INSERT INTO cloudflare_domains 
+             (id, domain_name, zone_id, config_id, created_at, updated_at, use_dns, use_emails, use_short_url) 
+             VALUES ($1, $2, $3, $4, NOW(), NOW(), false, false, false)`,
+            crypto.randomUUID(), // 生成新的UUID
+            zone.name,
+            zone.id,
+            config.id
+          );
+        }
       });
-      
-      if (existingDomain) {
-        // 更新已有域名
-        await prisma.cloudflareDomain.update({
-          where: { id: existingDomain.id },
-          data: {
-            domainName: zone.name,
-            configId: config.id,
-          }
-        });
-      } else {
-        // 创建新域名
-        await prisma.cloudflareDomain.create({
-          data: {
-            domainName: zone.name,
-            zoneId: zone.id,
-            configId: config.id,
-          }
-        });
-      }
     }
     
     return NextResponse.json({
-      message: "域名列表刷新成功",
+      message: "域名列表已刷新",
       domains: data.result.length,
     });
   } catch (error) {

@@ -74,8 +74,8 @@ export const sidebarLinks: SidebarNavItem[] = [
       },
       {
         href: "/admin/cloudflare",
-        icon: "globe",
-        title: "Cloudflare",
+        icon: "globeLock",
+        title: "Domains",
         authorizeOnly: UserRole.ADMIN,
       },
     ],

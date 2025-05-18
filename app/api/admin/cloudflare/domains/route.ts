@@ -15,16 +15,39 @@ export async function GET() {
       );
     }
     
-    // 获取最新的配置
-    const config = await prisma.cloudflareConfig.findFirst({
-      orderBy: { createdAt: "desc" },
-      include: {
-        domains: true,
-      }
-    });
+    // 使用原始SQL查询获取最新配置和域名
+    const configs = await prisma.$queryRawUnsafe(`
+      SELECT * FROM cloudflare_configs 
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `);
+    
+    if (!configs || !configs[0]) {
+      return NextResponse.json({
+        domains: [],
+      });
+    }
+    
+    const config = configs[0];
+    
+    // 获取域名列表
+    const domains = await prisma.$queryRawUnsafe(`
+      SELECT 
+        id, 
+        domain_name AS "domainName", 
+        zone_id AS "zoneId", 
+        config_id AS "configId", 
+        created_at AS "createdAt", 
+        updated_at AS "updatedAt", 
+        use_dns AS "useDNS", 
+        use_emails AS "useEmails", 
+        use_short_url AS "useShortURL"
+      FROM cloudflare_domains 
+      WHERE config_id = $1
+    `, config.id);
     
     return NextResponse.json({
-      domains: config?.domains || [],
+      domains: domains || [],
     });
   } catch (error) {
     console.error("获取Cloudflare域名列表失败:", error);
