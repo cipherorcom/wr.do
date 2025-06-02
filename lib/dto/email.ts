@@ -19,7 +19,7 @@ export interface OriginalEmail {
   html?: string;
   date?: string;
   messageId?: string;
-  replyTo?: string;
+  replyTo?: string | EmailAddress[];
   headers?: string;
   attachments?: {
     filename: string;
@@ -44,6 +44,19 @@ export async function saveForwardEmail(emailData: OriginalEmail) {
   });
   if (!user_email) return null;
 
+  // 处理 replyTo 字段，如果是对象数组则提取 address 字段
+  let replyToValue: string | null = null;
+  if (emailData.replyTo) {
+    if (typeof emailData.replyTo === 'string') {
+      replyToValue = emailData.replyTo;
+    } else if (Array.isArray(emailData.replyTo) && emailData.replyTo.length > 0) {
+      const firstReply = emailData.replyTo[0];
+      if (firstReply && firstReply.address) {
+        replyToValue = firstReply.address;
+      }
+    }
+  }
+
   const res = await prisma.forwardEmail.create({
     data: {
       from: emailData.from,
@@ -54,7 +67,7 @@ export async function saveForwardEmail(emailData: OriginalEmail) {
       html: emailData.html,
       date: emailData.date,
       messageId: emailData.messageId,
-      replyTo: emailData.replyTo,
+      replyTo: replyToValue,
       cc: emailData.cc,
       headers: "[]",
       attachments: JSON.stringify(emailData.attachments),
